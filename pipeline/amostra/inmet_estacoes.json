@@ -1,0 +1,32 @@
+[
+ {
+  "CD_ESTACAO": "A701",
+  "DC_NOME": "SAO PAULO - MIRANTE",
+  "SG_ESTADO": "SP",
+  "VL_LATITUDE": "-23.49638888",
+  "VL_LONGITUDE": "-46.62000000",
+  "CD_SITUACAO": "Operante",
+  "TP_ESTACAO": "Automatica",
+  "VL_ALTITUDE": "792"
+ },
+ {
+  "CD_ESTACAO": "A771",
+  "DC_NOME": "SAO PAULO - INTERLAGOS",
+  "SG_ESTADO": "SP",
+  "VL_LATITUDE": "-23.72430555",
+  "VL_LONGITUDE": "-46.67763888",
+  "CD_SITUACAO": "Operante",
+  "TP_ESTACAO": "Automatica",
+  "VL_ALTITUDE": "792"
+ },
+ {
+  "CD_ESTACAO": "A755",
+  "DC_NOME": "BARUERI",
+  "SG_ESTADO": "SP",
+  "VL_LATITUDE": "-23.52388888",
+  "VL_LONGITUDE": "-46.86944444",
+  "CD_SITUACAO": "Operante",
+  "TP_ESTACAO": "Automatica",
+  "VL_ALTITUDE": "792"
+ }
+]

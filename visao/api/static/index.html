@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro de alertas por endereço</title>
+<style>
+  :root { --fg:#1a1a1a; --bg:#fff; --muted:#555; --pri:#0b5cad; --pri-fg:#fff; --warn-bg:#fff4d6; --warn:#7a4b00;
+          --ok:#0f6b36; --err:#b00020; --line:#c9c9c9; --card:#f5f7fa; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg:#f1f1f1; --bg:#121417; --muted:#b8b8b8; --pri:#5aa9ff; --pri-fg:#0b0d10; --warn-bg:#3a2d0b; --warn:#ffd77a;
+            --ok:#6fdc9a; --err:#ff8a8a; --line:#3b3f45; --card:#1c2026; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:18px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--fg); background:var(--bg); }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.5rem; margin: .5rem 0 0; }
+  h2 { font-size: 1.15rem; margin: 0 0 .5rem; }
+  p.lead { color: var(--muted); margin-top: .25rem; }
+  section { background: var(--card); border-radius: 12px; padding: 16px; margin: 16px 0; }
+  label { display:block; font-weight:600; margin: 12px 0 4px; }
+  input, select { width:100%; font:inherit; padding:10px 12px; border:2px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); }
+  input:focus, select:focus, button:focus, a:focus { outline: 3px solid var(--pri); outline-offset: 2px; }
+  .revisar input { border-color: var(--warn); background: var(--warn-bg); }
+  .dica { font-size:.9rem; color: var(--warn); font-weight: 600; }
+  .linha { display:flex; gap:12px; } .linha > div { flex:1; } .linha > div.peq { flex: 0 0 30%; }
+  button { font:inherit; font-weight:700; padding:12px 18px; border:0; border-radius:10px; background:var(--pri); color:var(--pri-fg); cursor:pointer; width:100%; margin-top:16px; min-height:48px; }
+  button.sec { background:transparent; color:var(--pri); border:2px solid var(--pri); }
+  button:disabled { opacity:.6; cursor:wait; }
+  .msg { padding:12px; border-radius:8px; margin-top:12px; }
+  .erro { background: color-mix(in srgb, var(--err) 15%, transparent); color: var(--err); }
+  .sucesso { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); font-weight:600; }
+  .aviso { background: var(--warn-bg); color: var(--warn); }
+  img.trecho { width:100%; border:1px solid var(--line); border-radius:8px; background:#fff; }
+  .lgpd { font-size: .9rem; color: var(--muted); }
+  .check { display:flex; gap:10px; align-items:flex-start; font-weight:400; }
+  .check input { width:24px; height:24px; flex: 0 0 24px; margin-top:2px; }
+  [hidden] { display:none !important; }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Receba alertas de enchente e calor na sua rua</h1>
+  <p class="lead">Tire uma foto de uma conta de luz, água ou internet. A gente lê o endereço para você.</p>
+
+  <section id="passo1" aria-labelledby="t1">
+    <h2 id="t1">1. Foto da conta</h2>
+    <label for="foto">Escolha ou tire a foto (Enel, Sabesp ou Claro)</label>
+    <input id="foto" type="file" accept="image/*" capture="environment">
+    <p class="lgpd">A foto só é usada para ler o endereço e é apagada logo depois. Não guardamos a imagem nem os valores da conta.</p>
+    <button id="btnLer" type="button">Ler endereço</button>
+    <button id="btnManual" class="sec" type="button">Prefiro digitar o endereço</button>
+    <div id="status1" role="status" aria-live="polite"></div>
+  </section>
+
+  <form id="passo2" hidden aria-labelledby="t2" novalidate>
+    <section>
+      <h2 id="t2">2. Confira seu endereço</h2>
+      <div id="resumoLeitura" role="status" aria-live="polite"></div>
+      <figure id="figTrecho" hidden style="margin:12px 0">
+        <img id="trecho" class="trecho" alt="Trecho da conta onde o endereço foi lido">
+        <figcaption class="lgpd">Trecho da conta onde encontramos o endereço.</figcaption>
+      </figure>
+      <div data-campo="cep"><label for="cep">CEP</label><input id="cep" name="cep" inputmode="numeric" autocomplete="postal-code" required></div>
+      <div data-campo="logradouro"><label for="logradouro">Rua / Avenida</label><input id="logradouro" name="logradouro" autocomplete="address-line1" required></div>
+      <div class="linha">
+        <div class="peq" data-campo="numero"><label for="numero">Número</label><input id="numero" name="numero" inputmode="numeric" required></div>
+        <div data-campo="complemento"><label for="complemento">Complemento</label><input id="complemento" name="complemento" autocomplete="address-line2"></div>
+      </div>
+      <div data-campo="bairro"><label for="bairro">Bairro</label><input id="bairro" name="bairro" required></div>
+      <div class="linha">
+        <div data-campo="cidade"><label for="cidade">Cidade</label><input id="cidade" name="cidade" autocomplete="address-level2" required></div>
+        <div class="peq" data-campo="uf"><label for="uf">UF</label><input id="uf" name="uf" maxlength="2" autocomplete="address-level1" required></div>
+      </div>
+    </section>
+    <section aria-labelledby="t3">
+      <h2 id="t3">3. Onde avisar você</h2>
+      <label for="canal">Receber por</label>
+      <select id="canal" name="canal"><option value="whatsapp">WhatsApp</option><option value="sms">SMS</option></select>
+      <label for="contato">Celular com DDD</label>
+      <input id="contato" name="contato" inputmode="tel" autocomplete="tel" placeholder="(11) 91234-5678" required>
+      <label class="check"><input id="consentimento" type="checkbox" required>
+        <span>Autorizo o uso do meu endereço e celular só para enviar alertas da Defesa Civil e do INMET. Posso cancelar quando quiser.</span></label>
+      <button type="submit" id="btnConfirmar">Confirmar e ativar alertas</button>
+      <div id="status2" role="status" aria-live="polite"></div>
+    </section>
+  </form>
+</main>
+<script>
+const CAMPOS = ["cep","logradouro","numero","complemento","bairro","cidade","uf"];
+const $ = id => document.getElementById(id);
+let leitura = null;
+
+function msg(el, texto, tipo) { el.innerHTML = ""; if (!texto) return; const d = document.createElement("div");
+  d.className = "msg " + tipo; d.textContent = texto; el.appendChild(d); }
+
+function mostrarFormulario(dados) {
+  $("passo2").hidden = false;
+  document.querySelectorAll("[data-campo]").forEach(div => {
+    div.classList.remove("revisar"); const dica = div.querySelector(".dica"); if (dica) dica.remove(); });
+  CAMPOS.forEach(c => $(c).value = dados && dados.endereco ? (dados.endereco[c] || "") : "");
+  if (dados) {
+    (dados.campos_revisar || []).forEach(c => { const div = document.querySelector(`[data-campo="${c}"]`);
+      if (!div) return; div.classList.add("revisar"); const p = document.createElement("p");
+      p.className = "dica"; p.textContent = "Confira este campo"; div.appendChild(p); });
+    const nomes = {enel:"Enel (luz)", sabesp:"Sabesp (água)", claro:"Claro (internet)"};
+    const conta = nomes[dados.empresa] || "conta";
+    const txt = dados.endereco ? `Lemos o endereço da sua conta ${conta}. Confira e corrija se precisar.`
+                               : "Não conseguimos ler o endereço. Digite abaixo, por favor.";
+    msg($("resumoLeitura"), txt, dados.endereco && !dados.campos_revisar.length ? "sucesso" : "aviso");
+    if (dados.trecho_documento) { $("trecho").src = dados.trecho_documento; $("figTrecho").hidden = false; }
+  } else { $("figTrecho").hidden = true; msg($("resumoLeitura"), "", ""); }
+  const primeiro = dados && dados.campos_revisar && dados.campos_revisar[0];
+  $(primeiro || "cep").focus();
+}
+
+$("btnLer").onclick = async () => {
+  const f = $("foto").files[0];
+  if (!f) { msg($("status1"), "Escolha uma foto primeiro.", "erro"); $("foto").focus(); return; }
+  $("btnLer").disabled = true; msg($("status1"), "Lendo a conta… isso leva poucos segundos.", "aviso");
+  const fd = new FormData(); fd.append("arquivo", f);
+  try {
+    const r = await fetch("/api/v1/enderecos/extrair", {method:"POST", body:fd});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || "Erro ao ler a foto");
+    leitura = j; msg($("status1"), "", ""); mostrarFormulario(j);
+  } catch (e) {
+    leitura = null;
+    msg($("status1"), (e.message || "Sem conexão") + ". Você pode digitar o endereço.", "erro");
+    mostrarFormulario(null);
+  } finally { $("btnLer").disabled = false; }
+};
+$("btnManual").onclick = () => { leitura = null; mostrarFormulario(null); };
+
+$("passo2").onsubmit = async ev => {
+  ev.preventDefault();
+  const endereco = Object.fromEntries(CAMPOS.map(c => [c, $(c).value.trim()]));
+  const faltando = CAMPOS.filter(c => c !== "complemento" && !endereco[c]);
+  if (faltando.length) { msg($("status2"), "Preencha: " + faltando.join(", "), "erro"); $(faltando[0]).focus(); return; }
+  if (!$("consentimento").checked) { msg($("status2"), "Marque a autorização para receber alertas.", "erro"); $("consentimento").focus(); return; }
+  const corrigidos = leitura && leitura.endereco ? CAMPOS.filter(c => (leitura.endereco[c]||"") !== endereco[c]) : [];
+  const corpo = { endereco, canal: $("canal").value, contato: $("contato").value, consentimento: true,
+    origem: leitura && leitura.endereco ? "ocr" : "manual", empresa_documento: leitura ? leitura.empresa : null,
+    campos_corrigidos: corrigidos, confianca_ocr: leitura ? leitura.confianca : null };
+  $("btnConfirmar").disabled = true;
+  try {
+    const r = await fetch("/api/v1/cadastros", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(corpo)});
+    const j = await r.json();
+    if (!r.ok) { const d = j.detail; const t = typeof d === "string" ? d : (d.mensagem ? d.mensagem + ": " + d.erros.join("; ") : d.map(x => x.msg).join("; ")); throw new Error(t); }
+    msg($("status2"), j.mensagem + ` Avisaremos por ${corpo.canal === "sms" ? "SMS" : "WhatsApp"} no ${j.contato}.`, "sucesso");
+  } catch (e) { msg($("status2"), e.message || "Sem conexão. Tente de novo.", "erro"); }
+  finally { $("btnConfirmar").disabled = false; }
+};
+</script>
+</body>
+</html>

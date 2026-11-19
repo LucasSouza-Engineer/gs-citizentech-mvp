@@ -1,0 +1,65 @@
+[
+ {
+  "id": 51234,
+  "descricao": "Tempestade",
+  "severidade": "Perigo",
+  "aviso_cor": "#FF9900",
+  "inicio": "2026-11-18 15:00:00.0",
+  "fim": "2026-11-19 10:00:00.0",
+  "riscos": [
+   "Chuva entre 30 e 60 mm/h ou 50 e 100 mm/dia, ventos intensos (60-100 km/h) e queda de granizo."
+  ],
+  "instrucoes": [
+   "Em caso de rajadas de vento: não se abrigue debaixo de árvores.",
+   "Evite enfrentar o mau tempo.",
+   "Obtenha mais informações junto à Defesa Civil (199)."
+  ],
+  "estados": "SP",
+  "geocodes": "3550308,3518800,3516309,3534401,3505708"
+ },
+ {
+  "id": 51235,
+  "descricao": "Acumulado de Chuva",
+  "severidade": "Perigo Potencial",
+  "aviso_cor": "#FFFF00",
+  "inicio": "2026-11-18 15:00:00.0",
+  "fim": "2026-11-19 21:00:00.0",
+  "riscos": [
+   "Chuva entre 20 e 30 mm/h ou até 50 mm/dia. Baixo risco de alagamentos."
+  ],
+  "instrucoes": [
+   "Obtenha mais informações junto à Defesa Civil (199)."
+  ],
+  "estados": "SP",
+  "geocodes": "3547809,3548708"
+ },
+ {
+  "id": 51236,
+  "descricao": "Onda de Calor",
+  "severidade": "Perigo Potencial",
+  "aviso_cor": "#FFFF00",
+  "inicio": "2026-11-18 15:00:00.0",
+  "fim": "2026-11-20 21:00:00.0",
+  "riscos": [
+   "Temperatura 5 °C acima da média por 2 a 3 dias."
+  ],
+  "instrucoes": [
+   "Beba bastante água.",
+   "Evite exposição ao sol nas horas mais quentes."
+  ],
+  "estados": "SP",
+  "geocodes": "3550308,3534401,3505708,3547809,3548708,3518800"
+ },
+ {
+  "id": 51101,
+  "descricao": "Declínio de Temperatura",
+  "severidade": "Perigo Potencial",
+  "aviso_cor": "#FFFF00",
+  "inicio": "2026-11-17 09:00:00.0",
+  "fim": "2026-11-17 21:00:00.0",
+  "riscos": [],
+  "instrucoes": [],
+  "estados": "SP",
+  "geocodes": "3550308"
+ }
+]

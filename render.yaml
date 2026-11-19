@@ -1,0 +1,19 @@
+# Render Blueprint: New > Blueprint > escolha este repositório
+services:
+  - type: web
+    name: alerta-enchente-calor
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/saude
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: PIPELINE_MODO
+        value: offline
+      - key: PIPELINE_INTERVALO_MIN
+        value: "60"
+      - key: DEMO_SEED
+        value: "1"
+      - key: ADMIN_TOKEN
+        generateValue: true

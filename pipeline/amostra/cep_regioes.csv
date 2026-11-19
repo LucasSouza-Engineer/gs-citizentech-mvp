@@ -1,0 +1,19 @@
+cep5,regiao,zona,cidade,uf,cod_ibge,latitude,longitude
+01310,Bela Vista,Centro,São Paulo,SP,3550308,-23.5614,-46.6559
+01001,Sé,Centro,São Paulo,SP,3550308,-23.5503,-46.634
+02011,Santana,Norte,São Paulo,SP,3550308,-23.5017,-46.625
+02675,Freguesia do Ó,Norte,São Paulo,SP,3550308,-23.498,-46.696
+03164,Mooca,Leste,São Paulo,SP,3550308,-23.558,-46.599
+03610,Penha,Leste,São Paulo,SP,3550308,-23.526,-46.544
+08010,São Miguel Paulista,Leste,São Paulo,SP,3550308,-23.496,-46.444
+08220,Itaquera,Leste,São Paulo,SP,3550308,-23.539,-46.457
+08471,Guaianases,Leste,São Paulo,SP,3550308,-23.542,-46.411
+04101,Vila Mariana,Sul,São Paulo,SP,3550308,-23.588,-46.634
+04843,Grajaú,Sul,São Paulo,SP,3550308,-23.77,-46.695
+05424,Pinheiros,Oeste,São Paulo,SP,3550308,-23.566,-46.692
+05065,Lapa,Oeste,São Paulo,SP,3550308,-23.524,-46.706
+07010,Centro de Guarulhos,RMSP,Guarulhos,SP,3518800,-23.463,-46.533
+06010,Centro de Osasco,RMSP,Osasco,SP,3534401,-23.532,-46.792
+09010,Centro de Santo André,RMSP,Santo André,SP,3547809,-23.657,-46.532
+09710,Centro de São Bernardo,RMSP,São Bernardo do Campo,SP,3548708,-23.694,-46.565
+07850,Centro de Franco da Rocha,RMSP,Franco da Rocha,SP,3516309,-23.322,-46.727

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Risco no meu endereço</title>
+<link rel="stylesheet" href="/mvp/estilo.css">
+</head>
+<body>
+<main class="estreito">
+  <nav aria-label="Navegação"><a href="/">Cadastro</a> · <a href="/painel">Painel de risco</a></nav>
+  <h1>Risco no meu endereço</h1>
+  <p class="lead" id="endereco">Carregando…</p>
+  <section aria-labelledby="tRisco"><h2 id="tRisco" class="sr">Risco agora</h2><div id="risco" role="status" aria-live="polite"></div></section>
+  <section aria-labelledby="tAl">
+    <h2 id="tAl">Alertas enviados para você</h2>
+    <ul class="lista" id="alertas"></ul>
+  </section>
+  <section>
+    <h2>Não quer mais receber?</h2>
+    <p class="muted">Apagamos seu endereço, seu celular e o histórico de alertas (LGPD).</p>
+    <button class="sec" id="btnExcluir" type="button">Cancelar alertas e apagar meus dados</button>
+    <div id="statusEx" role="status" aria-live="polite"></div>
+  </section>
+</main>
+<script src="/mvp/comum.js"></script>
+<script>
+let id = new URLSearchParams(location.search).get("id");
+try { id = id || localStorage.getItem("cadastro_id"); } catch (e) {}
+let tentativas = 0;
+async function carregar() {
+  if (!id) { $("endereco").textContent = "Cadastro não encontrado. Faça o cadastro primeiro."; return; }
+  const r = await fetch(`/api/v1/cadastros/${encodeURIComponent(id)}/alertas`);
+  if (!r.ok) { $("endereco").innerHTML = 'Cadastro não encontrado. <a href="/">Cadastrar</a>'; return; }
+  const j = await r.json(), c = j.cadastro;
+  $("endereco").textContent = `${c.logradouro}, ${c.numero} · ${c.bairro} · ${c.cidade}/${c.uf} · CEP ${cep(c.cep)}. `
+    + `Alertas por ${c.canal === "sms" ? "SMS" : "WhatsApp"} para ${c.contato}.`;
+  $("risco").innerHTML = j.risco ? blocoRisco(j.risco) + `<p class="selo">Atualizado ${hora(j.risco.atualizado_em_utc || new Date().toISOString())}.</p>`
+                                 : "Calculando o risco do seu CEP…";
+  $("alertas").innerHTML = j.alertas.length ? j.alertas.map(a => `<li>${selo(a.nivel)} <b>${a.tipo === "calor" ? "Calor" : "Chuva forte"}</b>
+      <span class="selo">· ${hora(a.enviado_em_utc || a.criado_em_utc)} · ${esc(a.status)}${a.provedor === "simulado" ? " (envio simulado)" : ""}</span>
+      <p>${esc(a.mensagem)}</p></li>`).join("")
+    : '<li class="muted">Nenhum alerta até agora. Se o risco subir para "alerta", você recebe uma mensagem.</li>';
+  // logo após o cadastro o pipeline ainda está rodando: tenta de novo por ~1 min
+  if ((!j.risco || j.risco.calculado !== "pipeline") && tentativas++ < 12) setTimeout(carregar, 5000);
+}
+$("btnExcluir").onclick = async () => {
+  if (!id) return;
+  const r = await fetch(`/api/v1/cadastros/${encodeURIComponent(id)}`, { method: "DELETE" });
+  $("statusEx").textContent = r.ok ? "Pronto, seus dados foram apagados." : "Não consegui apagar agora. Tente de novo.";
+  if (r.ok) { try { localStorage.removeItem("cadastro_id"); } catch (e) {} $("btnExcluir").disabled = true; }
+};
+carregar();
+</script>
+<style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}</style>
+</body>
+</html>

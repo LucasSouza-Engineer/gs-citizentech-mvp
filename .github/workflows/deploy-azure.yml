@@ -1,0 +1,57 @@
+# CI/CD: testa, monta a imagem e publica no Azure App Service a cada push na main.
+# Segredos do repositório (Settings > Secrets and variables > Actions), saída do azure/deploy.sh ou do portal:
+#   ACR_LOGIN_SERVER   ex.: acrcitizentechabc123.azurecr.io
+#   ACR_USERNAME / ACR_PASSWORD   (Container Registry > Access keys)
+#   AZURE_WEBAPP_NAME  ex.: alerta-enchente-calor-abc123
+#   AZURE_WEBAPP_PUBLISH_PROFILE  (Web App > Download publish profile, conteúdo do arquivo)
+name: deploy-azure
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-por
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q
+
+  deploy:
+    needs: testes
+    runs-on: ubuntu-latest
+    env:
+      TEM_AZURE: ${{ secrets.ACR_LOGIN_SERVER != '' }}
+    steps:
+      - if: env.TEM_AZURE != 'true'
+        run: echo "::notice::Segredos do Azure ainda não configurados; deploy pulado."
+      - uses: actions/checkout@v4
+        if: env.TEM_AZURE == 'true'
+      - uses: docker/login-action@v3
+        if: env.TEM_AZURE == 'true'
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      - uses: docker/build-push-action@v6
+        if: env.TEM_AZURE == 'true'
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/mvp-alertas:${{ github.sha }}
+            ${{ secrets.ACR_LOGIN_SERVER }}/mvp-alertas:latest
+      - uses: azure/webapps-deploy@v3
+        if: env.TEM_AZURE == 'true'
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: ${{ secrets.ACR_LOGIN_SERVER }}/mvp-alertas:${{ github.sha }}
+      - name: Smoke test
+        if: env.TEM_AZURE == 'true'
+        run: |
+          for i in $(seq 1 30); do curl -fsS "https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/api/v1/saude" && exit 0; sleep 10; done; exit 1

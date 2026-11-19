@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de risco</title>
+<link rel="stylesheet" href="/mvp/estilo.css">
+</head>
+<body>
+<main>
+  <nav aria-label="Navegação"><a href="/">Cadastro</a> · <a href="/painel">Painel de risco</a> · <a href="/docs">API</a></nav>
+  <h1>Enchente e calor agora na Grande São Paulo</h1>
+  <p class="lead" id="origem">Carregando…</p>
+
+  <div class="cards" aria-live="polite">
+    <div class="card"><span class="muted">Cadastros</span><b id="kCad">–</b><span class="selo" id="kCadDet"></span></div>
+    <div class="card"><span class="muted">CEPs monitorados</span><b id="kCeps">–</b></div>
+    <div class="card"><span class="muted">CEPs em alerta</span><b id="kAlerta">–</b></div>
+    <div class="card"><span class="muted">Alertas enviados</span><b id="kEnv">–</b><span class="selo" id="kEnvDet"></span></div>
+  </div>
+
+  <section aria-labelledby="tCep">
+    <h2 id="tCep">Consultar um CEP</h2>
+    <form class="linha" id="fCep"><label for="cep" class="sr">CEP</label>
+      <input id="cep" inputmode="numeric" placeholder="03610-780" autocomplete="postal-code"><button type="submit">Ver risco</button></form>
+    <div id="resCep" role="status" aria-live="polite" style="margin-top:12px"></div>
+  </section>
+
+  <section aria-labelledby="tReg">
+    <h2 id="tReg">Regiões</h2>
+    <div class="tabela"><table>
+      <thead><tr><th scope="col">Região</th><th scope="col">Zona</th><th scope="col">Enchente</th><th scope="col">Calor</th>
+        <th scope="col" class="num">Chuva 1 h</th><th scope="col" class="num">Chuva 24 h</th><th scope="col" class="num">Máx. 24 h</th></tr></thead>
+      <tbody id="regioes"></tbody></table></div>
+  </section>
+
+  <section aria-labelledby="tAl">
+    <h2 id="tAl">Últimos alertas disparados</h2>
+    <ul class="lista" id="alertas"></ul>
+  </section>
+  <p class="selo" id="rodape"></p>
+</main>
+<script src="/mvp/comum.js"></script>
+<script>
+async function carregar() {
+  const [p, reg] = await Promise.all([fetch("/api/v1/painel").then(r => r.json()), fetch("/api/v1/regioes").then(r => r.json())]);
+  const r = p.resumo, cad = r.cadastros || {};
+  const reais = (cad.ocr || 0) + (cad.manual || 0);
+  $("kCad").textContent = reais + (cad.demo || 0);
+  $("kCadDet").textContent = `${reais} reais · ${cad.demo || 0} de demonstração`;
+  $("kCeps").textContent = r.ceps_monitorados; $("kAlerta").textContent = r.ceps_em_alerta;
+  const env = (r.envios || []).filter(e => e.status === "enviado").reduce((s, e) => s + e.n, 0);
+  const sim = (r.envios || []).filter(e => e.provedor === "simulado").reduce((s, e) => s + e.n, 0);
+  $("kEnv").textContent = env; $("kEnvDet").textContent = sim ? `${sim} em modo simulado` : "";
+  const o = r.pipeline.origem_dados || {};
+  const amostra = Object.values(o).includes("amostra");
+  $("origem").textContent = r.pipeline.ultima_execucao
+    ? `Atualizado ${hora(r.pipeline.ultima_execucao)} (horário de Brasília). Dados: INMET (estações e avisos) e Cemaden (pluviômetros)`
+      + (amostra ? " · modo demonstração: cenário gravado do temporal de 18/11 na Zona Leste." : " · ao vivo.")
+    : "O pipeline está rodando pela primeira vez. Atualize em alguns segundos.";
+  $("regioes").innerHTML = reg.map(x => `<tr><th scope="row">${esc(x.regiao)}</th><td>${esc(x.zona)}</td>
+      <td>${selo(x.nivel_enchente)}</td><td>${selo(x.nivel_calor)}</td><td class="num">${num(x.chuva_1h_mm, 0, " mm")}</td>
+      <td class="num">${num(x.chuva_24h_mm, 0, " mm")}</td><td class="num">${num(x.temp_max_24h_c, 1, " °C")}</td></tr>`).join("");
+  $("alertas").innerHTML = p.alertas.length ? p.alertas.slice(0, 12).map(a => `<li>${selo(a.nivel)} <b>${a.tipo === "calor" ? "Calor" : "Chuva forte"}</b>
+      · CEP ${cep(a.cep)} <span class="selo">· ${a.canal === "sms" ? "SMS" : "WhatsApp"} ${esc(a.contato_mascarado || "")}
+      · ${hora(a.enviado_em_utc)} · ${esc(a.status)}${a.provedor === "simulado" ? " (simulado)" : ""}</span>
+      <p>${esc(a.mensagem)}</p></li>`).join("") : '<li class="muted">Nenhum alerta ainda.</li>';
+  const q = r.pipeline.resultado && r.pipeline.resultado.qualidade;
+  $("rodape").textContent = q ? `Qualidade dos dados na última execução: ${JSON.stringify(q)}` : "";
+}
+$("fCep").onsubmit = async ev => {
+  ev.preventDefault();
+  const r = await fetch("/api/v1/risco/" + encodeURIComponent($("cep").value));
+  const j = await r.json();
+  $("resCep").innerHTML = r.ok ? `<p><b>CEP ${cep(j.cep)} · ${esc(j.regiao)}</b></p>` + blocoRisco(j)
+                               : `<p>${esc(j.detail || "CEP não encontrado")}</p>`;
+};
+carregar(); setInterval(carregar, 60000);
+</script>
+<style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}</style>
+</body>
+</html>
